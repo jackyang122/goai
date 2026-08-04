@@ -1,0 +1,21 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(curl -fsSL https://higress.ai/hiclaw/install.ps1 -o /tmp/hiclaw-install.ps1)",
+      "Read(//tmp/**)",
+      "Bash(powershell.exe -NoProfile -Command '$PSVersionTable.PSVersion.ToString\\(\\)')",
+      "Bash(docker --version)",
+      "Bash(timeout 10 docker ps)",
+      "Bash(powershell.exe -NoProfile -Command \"Get-Process -Name 'Docker Desktop','com.docker.backend','com.docker.service' -ErrorAction SilentlyContinue | Select-Object Name,Id | Format-Table -AutoSize\")",
+      "Bash(wsl.exe -l -v)",
+      "Bash(wsl.exe --shutdown)",
+      "Bash(powershell.exe -NoProfile -Command 'Get-Process -ErrorAction SilentlyContinue | Where-Object { $_.Name -like \"Docker*\" -or $_.Name -like \"com.docker.*\" -or $_.Name -eq \"vpnkit-bridge\" } | ForEach-Object { Write-Host \\(\"killing \" + $_.Name + \" \\(\" + $_.Id + \"\\)\"\\); $_ | Stop-Process -Force -ErrorAction SilentlyContinue }')",
+      "Bash(powershell.exe -NoProfile -Command 'Get-Process -ErrorAction SilentlyContinue | Where-Object { $_.Name -like \"Docker*\" -or $_.Name -like \"com.docker.*\" } | Select-Object Name,Id | Format-Table -AutoSize')",
+      "Bash(powershell.exe -Command \"Start-Process -FilePath 'C:\\\\Program Files\\\\Docker\\\\Docker\\\\Docker Desktop.exe'\")",
+      "Bash(wsl.exe --status)",
+      "Bash(wsl.exe --version)",
+      "Read(//c/Users/THINK/.claude/projects/E--sourcedream-project-harness-code/memory/**)",
+      "Read(//c/Users/THINK/.claude/projects/E--sourcedream-project-harness-code/memory//**)"
+    ]
+  }
+}

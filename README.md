@@ -2,13 +2,13 @@
 
 > Agent 原生的个性化学习操作系统 —— 让 AI 成为终身学习伙伴。基于 [DeepTutor](https://github.com/HKUDS/DeepTutor) 构建。
 
-本仓库包含 **Personal Learning OS（PLOS）** 的产品前端与后端接口协议。前端是一个 Next.js 16 应用（`web/`），通过一套可替换的 API 客户端消费 **DeepTutor 后端**（FastAPI）以及三个 PLOS 扩展（Learner State、6 Skills、Mastery Engine）。
+本仓库包含 **Personal Learning OS（PLOS）** 的产品前端与后端接口协议与**完整后端实现**。前端是一个 Next.js 16 应用（`web/`），通过一套可替换的 API 客户端消费后端（FastAPI）；后端 `src/plos/` 已完整实现协议定义的全部 21 个端点 + WebSocket 流式。
 
 ## 状态
 
 - ✅ **可运行 Demo**：开箱即用，内置本地 Mock 后端，无需任何外部服务即可体验全部页面与交互。
-- 📐 **接口协议已定义**：见 [`docs/API协议.md`](docs/API协议.md)，每个方法都映射到 DeepTutor 原生能力或 PLOS 扩展端点。
-- 🚧 **模块逻辑待实现**：各模块的具体后端逻辑可未来实现，方案见 [`docs/模块方案.md`](docs/模块方案.md)。
+- ✅ **完整后端已实现**：`src/plos/`（Python 3.9+ / FastAPI）落地协议全部 21 端点 + `/ws/chat`，含 MasteryEngine（pyBKT）、三层 Memory（mem0）、多引擎 RAG（LlamaIndex）、FSRS 间隔重复、PocketBase 鉴权。运行见 [`src/README.md`](src/README.md)。
+- 📐 **接口协议完整**：见 [`docs/API协议.md`](docs/API协议.md)，21 端点完整目录 + `ChatMessage.payload` 判别联合 + 数据模型 + 组件映射。
 
 ## 快速开始
 
@@ -35,7 +35,21 @@ Demo 默认 `NEXT_PUBLIC_USE_MOCK=true`。接入真实 DeepTutor 实例：
 
 3. `npm run build && npm run start`。Next.js 中间件会把 `/api/*`、`/ws/*` 转发到 DeepTutor 后端。
 
-> 注意：DeepTutor 原生提供 chat / KB / memory / quiz / mastery 等能力；PLOS 的 LearnerState / Skills / MasteryEngine 是其上的薄扩展，端点协议见 [`docs/API协议.md`](docs/API协议.md)，后端逻辑待实现。
+> 注意：DeepTutor 原生提供 chat / KB / memory / quiz / mastery 等能力；PLOS 的 LearnerState / Skills / MasteryEngine 是其上的薄扩展。
+
+## 运行 PLOS 后端（`src/`）
+
+仓库自带完整后端实现，可替代 Mock 供前端联调（或独立部署）：
+
+```bash
+cd src
+pip install -e ".[all,dev]"                 # 依赖（按需选 extras）
+docker compose up -d postgres               # 起 Postgres + pgvector（仓库根执行）
+alembic upgrade head && python -m plos.cli seed   # 建表 + 种子（stu_001）
+uvicorn plos.app.main:app --port 8001       # 起服务
+```
+
+`web/.env.local` 指向后端即可联调（`NEXT_PUBLIC_USE_MOCK=false` + `NEXT_PUBLIC_API_BASE_URL=http://localhost:8001`）。Provider 缝（LLM/Embedding/RAG/Memory/Auth）默认全 Stub，零外部依赖也能起；逐步配置见 [`src/.env.example`](src/.env.example) 与 [`src/README.md`](src/README.md)。
 
 ## 项目结构
 
@@ -46,10 +60,16 @@ Demo 默认 `NEXT_PUBLIC_USE_MOCK=true`。接入真实 DeepTutor 实例：
 │   ├── components/           # AppShell + 极简设计系统（shadcn 风格）
 │   ├── lib/api/              # ★ 接口契约层：types / mock / client（mock↔real 可换）
 │   └── lib/hooks.ts          # 前端数据 hook
+├── src/                      # ★ FastAPI 后端（完整实现，见 src/README.md）
+│   ├── plos/                 # api / ws / domain / db / providers / schemas / seed / alembic
+│   ├── tests/                # DB-free 逻辑测试（pytest）
+│   └── pyproject.toml
+├── docker-compose.yml        # 本地 Postgres + pgvector
 └── docs/
     ├── index.md              # 产品文档（系统架构 / 模块 / 路由 / 技术栈）
     ├── 产品设计计划.md        # 产品设计计划（定位 / IA / 模块 / 路线图）
     ├── 实施方案.md            # 实施方案（架构 / 数据流 / 阶段 / 验收）
+    ├── 后端逻辑设计.md        # 后端行为规约（8 场景 / 统一管线 / BKT / 记忆 / 端点）
     ├── API协议.md             # ★ 后端接口协议（端点 / 模式 / 数据模型 / 组件映射）
     └── 模块方案.md            # 各模块未来实现方案与开源组件选型
 ```
@@ -75,8 +95,10 @@ Dashboard  学习            练习            对话            我的
 ## 技术栈
 
 - **前端**：Next.js 16 · React 19 · TypeScript · Tailwind CSS v3 · lucide-react · framer-motion
-- **后端（DeepTutor）**：Python 3.11+ · FastAPI · WebSocket · LlamaIndex / LightRAG / GraphRAG / PageIndex
-- **存储**：PostgreSQL + pgvector
+- **后端（PLOS `src/`，已实现）**：Python 3.9+ · FastAPI · WebSocket · SQLAlchemy 2 (async) + asyncpg + Alembic
+- **知识追踪 / 记忆 / RAG**：pyBKT（离线拟合）+ 闭式前向滤波 · mem0（三层记忆）· LlamaIndex（hybrid RAG）· py-fsrs（间隔重复）
+- **AI 网关**：LiteLLM（多模型统一）· BGE-M3（embedding dim=1024）· Docling/MinerU（文档解析）
+- **存储 / 鉴权**：PostgreSQL + pgvector（HNSW）· PocketBase
 - **AI**：多 Provider 网关（OpenAI / Anthropic / Gemini）· Tool-Use · RAG
 
 ## 文档导航
@@ -86,6 +108,7 @@ Dashboard  学习            练习            对话            我的
 | [产品文档](docs/index.md) | 系统架构、核心模块、路由、技术栈 |
 | [产品设计计划](docs/产品设计计划.md) | 定位、信息架构、模块设计、设计系统、路线图 |
 | [实施方案](docs/实施方案.md) | 架构落地、数据流、分阶段交付、验收标准 |
+| [后端逻辑设计](docs/后端逻辑设计.md) | 后端行为规约：8 对话场景、统一管线、BKT、三层记忆、端点 |
 | [API 协议](docs/API协议.md) | 端点契约、数据模型、DeepTutor 映射、组件选型 |
 | [模块方案](docs/模块方案.md) | 各模块未来实现方案与开源组件选型 |
 

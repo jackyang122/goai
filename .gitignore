@@ -1,0 +1,39 @@
+# ── Python ──
+__pycache__/
+*.py[cod]
+*$py.class
+*.egg-info/
+.eggs/
+build/
+dist/
+pip-wheel-metadata/
+
+# ── Test / type caches ──
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.coverage
+htmlcov/
+coverage.xml
+
+# ── Virtual envs ──
+.venv/
+venv/
+env/
+ENV/
+
+# ── Secrets / local config (keep *.example tracked) ──
+.env
+.env.local
+.env.*.local
+*.local
+
+# ── IDE / OS ──
+.idea/
+.vscode/
+.DS_Store
+Thumbs.db
+
+# ── Backend runtime artifacts ──
+src/*.sqlite3
+*.log

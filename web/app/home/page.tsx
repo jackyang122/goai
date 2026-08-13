@@ -1,33 +1,23 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import Link from "next/link";
 import {
-  FlaskConical,
   GraduationCap,
   Paperclip,
   Send,
   Sparkles,
-  Users,
 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
-import { api, DEFAULT_PERSONA, LEARNER_ID } from "@/lib/api";
-import type { ChatMessage, PersonaId } from "@/lib/api";
+import { api, LEARNER_ID } from "@/lib/api";
+import type { ChatMessage } from "@/lib/api";
 import { cn } from "@/lib/utils";
-
-const PERSONAS: { id: PersonaId; label: string; icon: typeof GraduationCap; hint: string }[] = [
-  { id: "teacher", label: "Teacher", icon: GraduationCap, hint: "严谨·循循善诱" },
-  { id: "peer", label: "Peer", icon: Users, hint: "同伴·轻松" },
-  { id: "research", label: "Research", icon: FlaskConical, hint: "研究·严谨考据" },
-];
 
 const SUGGESTIONS = ["帮我规划今天的复习", "二次函数顶点怎么求？", "出一道二次函数的练习题", "总结我这周错题的规律"];
 
 export default function ChatPage() {
-  const [persona, setPersona] = useState<PersonaId>(DEFAULT_PERSONA);
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [input, setInput] = useState("");
   const [sending, setSending] = useState(false);
@@ -41,7 +31,6 @@ export default function ChatPage() {
       if (threads[0]) {
         threadId.current = threads[0].id;
         setMessages(threads[0].messages);
-        setPersona(threads[0].persona);
       }
       setLoading(false);
     })();
@@ -50,11 +39,6 @@ export default function ChatPage() {
   useEffect(() => {
     scrollRef.current?.scrollTo({ top: scrollRef.current.scrollHeight, behavior: "smooth" });
   }, [messages]);
-
-  async function changePersona(p: PersonaId) {
-    setPersona(p);
-    await api.updatePreferences(LEARNER_ID, { persona: p });
-  }
 
   async function send(text: string) {
     const content = text.trim();
@@ -70,7 +54,7 @@ export default function ChatPage() {
     setMessages((m) => [...m, userMsg]);
     setSending(true);
     try {
-      const reply = await api.sendMessage(LEARNER_ID, threadId.current, content, persona);
+      const reply = await api.sendMessage(LEARNER_ID, threadId.current, content, "teacher");
       setMessages((m) => [...m, reply]);
     } finally {
       setSending(false);
@@ -79,27 +63,6 @@ export default function ChatPage() {
 
   return (
     <div className="mx-auto flex h-[calc(100vh-4rem)] max-w-3xl flex-col px-4 py-4 md:px-8">
-      {/* Persona switcher */}
-      <div className="mb-4 flex flex-wrap items-center gap-2">
-        <span className="text-sm text-muted-foreground">对话角色</span>
-        {PERSONAS.map((p) => (
-          <button
-            key={p.id}
-            onClick={() => changePersona(p.id)}
-            className={cn(
-              "flex items-center gap-1.5 rounded-full border px-3 py-1 text-xs font-medium transition-colors",
-              persona === p.id
-                ? "border-accent bg-accent/10 text-accent"
-                : "border-border text-muted-foreground hover:bg-muted"
-            )}
-          >
-            <p.icon className="h-3.5 w-3.5" />
-            {p.label}
-            <span className="hidden text-[10px] opacity-70 sm:inline">{p.hint}</span>
-          </button>
-        ))}
-      </div>
-
       {/* Messages */}
       <div ref={scrollRef} className="flex-1 space-y-4 overflow-y-auto scrollbar-thin">
         {loading ? (
@@ -113,7 +76,7 @@ export default function ChatPage() {
         {sending && (
           <div className="flex items-center gap-2 text-sm text-muted-foreground">
             <Sparkles className="h-4 w-4 animate-pulse text-accent" />
-            Teacher 正在思考…
+            讲师正在思考…
           </div>
         )}
         {messages.length === 0 && !loading && (
@@ -121,7 +84,7 @@ export default function ChatPage() {
             <div className="mb-3 flex h-12 w-12 items-center justify-center rounded-full bg-accent/10 text-accent">
               <GraduationCap className="h-6 w-6" />
             </div>
-            <p className="text-sm text-muted-foreground">向你的 Teacher 提问，开始学习。</p>
+            <p className="text-sm text-muted-foreground">向你的讲师提问，开始学习。</p>
           </div>
         )}
       </div>

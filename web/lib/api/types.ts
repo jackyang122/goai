@@ -14,7 +14,7 @@
 // Primitives
 // ─────────────────────────────────────────────────────────────────────────────
 
-export type PersonaId = "teacher" | "peer" | "research";
+export type PersonaId = "teacher";
 
 export type Trend = "up" | "down" | "flat";
 

@@ -192,14 +192,12 @@ function SkillsTab({ skills }: { skills: SkillMeta[] }) {
 
 function SettingsTab() {
   const { state, refresh } = useLearnerState();
-  const [persona, setPersona] = useState(state?.preferences.persona ?? "teacher");
   const [difficulty, setDifficulty] = useState(state?.preferences.difficulty ?? "adaptive");
   const [dailyGoal, setDailyGoal] = useState(state?.preferences.dailyGoalMin ?? 45);
   const [saving, setSaving] = useState(false);
 
   useEffect(() => {
     if (state) {
-      setPersona(state.preferences.persona);
       setDifficulty(state.preferences.difficulty);
       setDailyGoal(state.preferences.dailyGoalMin);
     }
@@ -207,7 +205,7 @@ function SettingsTab() {
 
   async function save() {
     setSaving(true);
-    await api.updatePreferences(LEARNER_ID, { persona, difficulty, dailyGoalMin: dailyGoal });
+    await api.updatePreferences(LEARNER_ID, { difficulty, dailyGoalMin: dailyGoal });
     await refresh();
     setSaving(false);
   }
@@ -220,23 +218,6 @@ function SettingsTab() {
         <CardTitle className="text-sm">个性化设置</CardTitle>
       </CardHeader>
       <CardContent className="space-y-5">
-        <Field label="默认对话角色">
-          <div className="flex gap-2">
-            {(["teacher", "peer", "research"] as const).map((p) => (
-              <button
-                key={p}
-                onClick={() => setPersona(p)}
-                className={cn(
-                  "rounded-md border px-3 py-1.5 text-sm capitalize transition-colors",
-                  persona === p ? "border-accent bg-accent/10 text-accent" : "border-border hover:bg-muted"
-                )}
-              >
-                {p}
-              </button>
-            ))}
-          </div>
-        </Field>
-
         <Field label="练习难度">
           <div className="flex gap-2">
             {(["adaptive", "easy", "normal", "hard"] as const).map((d) => (

@@ -33,8 +33,6 @@ const USE_MOCK = process.env.NEXT_PUBLIC_USE_MOCK !== "false";
 export const API_BASE_URL =
   process.env.NEXT_PUBLIC_API_BASE_URL ?? "http://127.0.0.1:3782";
 export const LEARNER_ID = "stu_001";
-export const DEFAULT_PERSONA: PersonaId =
-  (process.env.NEXT_PUBLIC_DEFAULT_PERSONA as PersonaId) ?? "teacher";
 
 async function json<T>(res: Response): Promise<T> {
   if (!res.ok) throw new Error(`API ${res.status}: ${await res.text()}`);

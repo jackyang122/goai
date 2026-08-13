@@ -18,7 +18,6 @@ import type {
   MasteryPoint,
   MemoryItem,
   PlosApi,
-  PersonaId,
   Question,
   QuizResult,
   SkillId,
@@ -78,10 +77,8 @@ function pickSkill(text: string): SkillId {
   return "personal-explain";
 }
 
-function respond(text: string, persona: PersonaId): { content: string; citations: Citation[] } {
+function respond(text: string): { content: string; citations: Citation[] } {
   const skill = pickSkill(text);
-  const peer = persona === "peer";
-  const opener = peer ? "我也觉得这块有点绕哈——" : "";
 
   const cit = (source: string, snippet: string): Citation => ({
     id: `c_${Math.random().toString(36).slice(2, 8)}`,
@@ -93,7 +90,7 @@ function respond(text: string, persona: PersonaId): { content: string; citations
     case "learning-plan":
       return {
         content:
-          opener +
+          
           "根据你当前的掌握度，我建议今天的轨道是：\n\n" +
           "1. 二次函数 · 精通路径（约 20 分钟）——你的掌握度 42%，重点补顶点与判别式\n" +
           "2. 错题重练 · 3 道（约 15 分钟）——都是你最近错过的薄弱点\n" +
@@ -104,7 +101,7 @@ function respond(text: string, persona: PersonaId): { content: string; citations
     case "adaptive-practice":
       return {
         content:
-          opener +
+          
           "好，我按你的薄弱点出 3 道自适应题（难度随你的掌握度调整）。" +
           "先来第 1 题：抛物线 y = x² - 4x + 3 的顶点坐标是？",
         citations: [cit("题库 · adaptive-practice", "topic=二次函数, base_level=0.42")],
@@ -112,7 +109,7 @@ function respond(text: string, persona: PersonaId): { content: string; citations
     case "error-diagnosis":
       return {
         content:
-          opener +
+          
           "我看了一下你的错题：核心是「符号错误」——把顶点横坐标 -b/2a 误写成 b/2a。\n\n" +
           "关键点：公式里的负号属于公式本身，不是 a 或 b 的符号。\n" +
           "我把它加入薄弱点，并安排 1 道针对练习巩固。",
@@ -121,7 +118,7 @@ function respond(text: string, persona: PersonaId): { content: string; citations
     case "mistake-summary":
       return {
         content:
-          opener +
+          
           "本周错题归纳：\n\n" +
           "• 符号/正负号错误 — 5 次（二次函数顶点、不等式方向）\n" +
           "• 概念混淆 — 2 次（判别式与交点个数）\n\n" +
@@ -131,7 +128,7 @@ function respond(text: string, persona: PersonaId): { content: string; citations
     case "homework-coach":
       return {
         content:
-          opener +
+          
           "我们分步来，先不急着想答案：\n\n" +
           "1. 先确认这是什么类型的问题（函数？几何？）\n" +
           "2. 把已知量列出来\n" +
@@ -142,7 +139,7 @@ function respond(text: string, persona: PersonaId): { content: string; citations
     default: // personal-explain
       return {
         content:
-          opener +
+          
           "我用两种方式给你讲：\n\n" +
           "• 直观：把它想成「先找到对称轴 x = -b/2a，再上下平移到顶点」。\n" +
           "• 严格：配方 y = a(x + b/2a)² + (4ac-b²)/4a，顶点即 (-b/2a, (4ac-b²)/4a)。\n\n" +
@@ -175,7 +172,6 @@ export const mockApi: PlosApi = {
   async invokeSkill(req: SkillRequest): Promise<SkillResult> {
     await delay(200);
     const s = store.state(req.learnerId);
-    const persona = req.context?.persona ?? s.preferences.persona;
 
     const recent = (label: string) => [
       { id: `act_${Date.now()}`, type: "chat" as const, label, ts: nowIso() },
@@ -193,7 +189,7 @@ export const mockApi: PlosApi = {
         };
       }
       case "personal-explain": {
-        const r = respond(String(req.input.concept ?? "二次函数顶点"), persona);
+        const r = respond(String(req.input.concept ?? "二次函数顶点"));
         return {
           skill: "personal-explain",
           output: { explanation: r.content },
@@ -265,7 +261,7 @@ export const mockApi: PlosApi = {
     return clone(t);
   },
 
-  async sendMessage(learnerId, threadId, content, persona) {
+  async sendMessage(learnerId, threadId, content) {
     await delay(380);
     const threads = store.threads.get(learnerId) ?? [];
     let thread = threads.find((t) => t.id === threadId);
@@ -273,7 +269,7 @@ export const mockApi: PlosApi = {
       thread = {
         id: threadId,
         title: content.slice(0, 24),
-        persona,
+        persona: "teacher",
         messages: [],
         createdAt: nowIso(),
         updatedAt: nowIso(),
@@ -292,7 +288,7 @@ export const mockApi: PlosApi = {
     thread.messages.push(userMsg);
 
     const skill = pickSkill(content);
-    const { content: reply, citations } = respond(content, persona);
+    const { content: reply, citations } = respond(content);
     const assistantMsg: ChatMessage = {
       id: `m_${Date.now()}_a`,
       role: "assistant",
@@ -304,7 +300,7 @@ export const mockApi: PlosApi = {
     };
     thread.messages.push(assistantMsg);
     thread.updatedAt = nowIso();
-    thread.persona = persona;
+    thread.persona = "teacher";
 
     return clone(assistantMsg);
   },

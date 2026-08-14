@@ -42,11 +42,6 @@ src/*.sqlite3
 .next/
 .next-deeptutor/
 
-# ── Vendored upstream clone (nested git repo, ~1.2GB) ──
-# DeepTutor is a full clone of the public HKUDS/DeepTutor repo;
-# it is NOT part of this repo and should be fetched upstream.
-deeptutor-ref/
-
 # ── Scratch script containing a live API key ──
 # Remove the key before tracking, or delete the file.
 src/test_api_direct.py

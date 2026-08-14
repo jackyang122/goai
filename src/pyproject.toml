@@ -7,7 +7,7 @@ name = "plos"
 version = "0.1.0"
 description = "Personal Learning OS — agent-native personalized learning backend (FastAPI)"
 readme = "README.md"
-requires-python = ">=3.9"
+requires-python = ">=3.12"
 license = { text = "MIT" }
 authors = [{ name = "Personal Learning OS" }]
 dependencies = [
@@ -33,7 +33,7 @@ dependencies = [
 
 [project.optional-dependencies]
 # Real provider seams — each optional; app boots with stubs when absent.
-llm = ["litellm>=1.35"]
+llm = ["litellm>=1.83"]
 embed = ["FlagEmbedding>=1.2.7", "torch>=2.1"]
 rag = [
   "llama-index>=0.10",
@@ -54,7 +54,7 @@ dev = [
   "httpx>=0.27",
 ]
 all = [
-  "litellm>=1.35",
+  "litellm>=1.83",
   "FlagEmbedding>=1.2.7",
   "torch>=2.1",
   "llama-index>=0.10",
@@ -79,7 +79,7 @@ include = ["plos*"]
 
 [tool.ruff]
 line-length = 100
-target-version = "py39"
+target-version = "py312"
 extend-exclude = ["plos/alembic/versions"]
 
 [tool.ruff.lint]
@@ -87,7 +87,7 @@ select = ["E", "F", "I", "W", "UP", "B", "C4"]
 ignore = ["E501", "B008"]  # E501 handled by line-length; B008 FastAPI Depends() default
 
 [tool.mypy]
-python_version = "3.9"
+python_version = "3.12"
 ignore_missing_imports = true
 warn_unused_ignores = false
 check_untyped_defs = false

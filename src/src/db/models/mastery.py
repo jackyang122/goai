@@ -1,7 +1,7 @@
 """Mastery (BKT-tracked) + per-topic BKT parameters.
 
 ``Mastery`` is the *read* model surfaced to the frontend. The **only** writer of its
-``level`` / ``trend`` columns is :class:`MasteryEngine <plos.domain.mastery.MasteryEngine>`
+``level`` / ``trend`` columns is :class:`MasteryEngine <src.domain.mastery.MasteryEngine>`
 (via :class:`MasteryRepository._upsert`). Skills never write here directly.
 
 ``MasteryParam`` holds the BKT prior/transition/guess/slip per topic; online inference

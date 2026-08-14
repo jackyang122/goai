@@ -5,7 +5,7 @@ Revises:
 Create Date: 2026-08-13
 
 Self-contained: creates the pgvector extension, then all PLOS tables matching the ORM in
-``plos.db.models``. The embedding dimension is parameterized (BGE-M3 = 1024).
+``src.db.models``. The embedding dimension is parameterized (BGE-M3 = 1024).
 """
 
 from __future__ import annotations
@@ -16,7 +16,7 @@ import sqlalchemy as sa
 from alembic import op
 from pgvector.sqlalchemy import Vector
 
-from plos.core.config import settings
+from src.core.config import settings
 
 # revision identifiers, used by Alembic.
 revision: str = "0001_initial"

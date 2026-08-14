@@ -10,8 +10,8 @@ import json
 import pytest
 from pydantic import TypeAdapter, ValidationError
 
-from plos.core.time import now_iso
-from plos.schemas.chat import ChatMessage, ChatPayload
+from src.core.time import now_iso
+from src.schemas.chat import ChatMessage, ChatPayload
 
 PAYLOAD_ADAPTER = TypeAdapter(ChatPayload)
 
@@ -72,7 +72,7 @@ def test_chatmessage_payload_optional():
 
 def test_plan_task_ref_discriminated():
     """PlanTask.type is the literal union learn|practice|review."""
-    from plos.schemas.learner import PlanTask
+    from src.schemas.learner import PlanTask
 
     PlanTask(id="t", title="x", estMinutes=5, type="review")  # ok
     with pytest.raises(ValidationError):

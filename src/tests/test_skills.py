@@ -9,8 +9,8 @@ from __future__ import annotations
 
 import pytest
 
-from plos.domain.skills.router import SkillRouter
-from plos.domain.skills.routing import canned_reply, pick_skill
+from src.domain.skills.router import SkillRouter
+from src.domain.skills.routing import canned_reply, pick_skill
 
 SIX_SKILLS = {
     "learning-plan",

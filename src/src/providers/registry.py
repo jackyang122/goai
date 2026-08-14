@@ -10,7 +10,7 @@ from ..core.config import Settings
 from ..core.logging import get_logger
 from .auth import AuthProvider, DevAuth, PocketBaseAuth
 from .embedding import BgeEmbedding, EmbeddingProvider, StubEmbedding
-from .llm import LLMProvider, LiteLLMProvider, StubLLM
+from .llm import DeepTutorProvider, LLMProvider, LiteLLMProvider, StubLLM
 from .memory import Mem0Memory, MemoryProvider, StubMemory
 from .parser import DoclingParser, DocumentParser, StubParser
 
@@ -27,6 +27,16 @@ class ProviderContainer:
 
 
 def _build_llm(s: Settings) -> LLMProvider:
+    if s.llm_engine == "deeptutor":
+        try:
+            return DeepTutorProvider(
+                s.deeptutor_base_url,
+                s.deeptutor_token,
+                s.deeptutor_capability,
+                s.deeptutor_language,
+            )
+        except Exception as exc:  # noqa: BLE001
+            log.warning("DeepTutor configuration invalid (%s); falling back to stub LLM.", exc)
     if s.llm_engine == "litellm" and s.litellm_model:
         try:
             return LiteLLMProvider(s.litellm_model, s.litellm_api_key, s.litellm_api_base)

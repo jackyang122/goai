@@ -2,7 +2,7 @@
 
 Importing these by aggregate keeps the namespace tidy. ``MasteryRepository`` exposes
 read methods publicly; its single write path ``commit_update`` is called exclusively by
-:class:`MasteryEngine <plos.domain.mastery.MasteryEngine>` (enforced by CI grep + name
+:class:`MasteryEngine <src.domain.mastery.MasteryEngine>` (enforced by CI grep + name
 convention) — this is the single-writer rule for ``mastery``/``weakPoints``.
 """
 

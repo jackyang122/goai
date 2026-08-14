@@ -1,7 +1,7 @@
-# Personal Learning OS — local Postgres + pgvector for the `src/` backend.
+# Personal Learning OS — local Postgres + pgvector for the `后端 backbone/` backend.
 #
 #   docker compose up -d postgres
-#   cd src && alembic upgrade head && python -m plos.cli seed
+#   cd src && alembic upgrade head && python -m src.cli seed
 #
 # The pgvector/pgvector image bundles the `vector` extension; the app also runs
 # `CREATE EXTENSION IF NOT EXISTS vector` on startup, so either path works.

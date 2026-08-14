@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { BookX, CheckCircle2, Lightbulb, RefreshCw, XCircle } from "lucide-react";
+import { BookX, CheckCircle2, Lightbulb, RefreshCw, Target, XCircle } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -9,10 +9,30 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { api, LEARNER_ID } from "@/lib/api";
 import type { ErrorBookItem, Question, QuizResult } from "@/lib/api";
 import { cn } from "@/lib/utils";
+import { FEATURES } from "@/lib/features";
 
 const TOPICS = ["二次函数", "几何证明", "时态辨析"];
 
 export default function PracticePage() {
+  // Feature-gated: hidden until FEATURES.practice is enabled (see lib/features.ts).
+  // Render nothing feature-related before the flag check so hook order stays valid.
+  if (!FEATURES.practice) {
+    return <PracticeComingSoon />;
+  }
+  return <PracticeContent />;
+}
+
+function PracticeComingSoon() {
+  return (
+    <div className="mx-auto flex max-w-5xl flex-col items-center justify-center gap-3 p-4 py-24 text-center md:p-8">
+      <Target className="h-10 w-10 text-muted-foreground" />
+      <h1 className="text-xl font-semibold">智能测验 · 即将上线</h1>
+      <p className="text-sm text-muted-foreground">该功能正在开发中，敬请期待。</p>
+    </div>
+  );
+}
+
+function PracticeContent() {
   const [topic, setTopic] = useState("二次函数");
   const [questions, setQuestions] = useState<Question[]>([]);
   const [answers, setAnswers] = useState<Record<string, string>>({});

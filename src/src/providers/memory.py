@@ -76,7 +76,7 @@ class StubMemory(MemoryProvider):
 class Mem0Memory(MemoryProvider):
     name = "mem0"
 
-    def __init__(self, user_prefix: str = "plos") -> None:
+    def __init__(self, user_prefix: str = "src") -> None:
         try:
             from mem0 import Memory  # type: ignore
         except Exception as exc:  # pragma: no cover

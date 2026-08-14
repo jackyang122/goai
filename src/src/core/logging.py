@@ -8,11 +8,11 @@ import sys
 _CONFIGURED = False
 
 
-def configure_logging(level: str = "INFO") -> None:
+def configure_logging(level: str = "INFO", stream=None) -> None:
     global _CONFIGURED
     if _CONFIGURED:
         return
-    handler = logging.StreamHandler(sys.stdout)
+    handler = logging.StreamHandler(stream or sys.stdout)
     fmt = "%(asctime)s %(levelname)-7s %(name)s :: %(message)s"
     handler.setFormatter(logging.Formatter(fmt))
     root = logging.getLogger()

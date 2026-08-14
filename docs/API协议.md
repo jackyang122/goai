@@ -433,7 +433,7 @@ CREATE TABLE activity ( id TEXT PRIMARY KEY, learner_id TEXT, type TEXT, label T
 | 后端框架 | **FastAPI** + WebSocket | REST + 流式 |
 | 子智能体 | Claude Code / Codex CLI | Partners |
 
-### 10.1 已落地实现栈（`src/plos/`）
+### 10.1 已落地实现栈（`后端 backbone/`）
 
 | 协议域 | 实现组件（真实 ↔ Stub 降级） |
 |--------|------------------------------|
@@ -454,20 +454,20 @@ CREATE TABLE activity ( id TEXT PRIMARY KEY, learner_id TEXT, type TEXT, label T
 
 ## 11. 实现状态
 
-本文档定义的全部 21 个端点已由 `src/plos/`（Python 3.9+ / FastAPI）实现，覆盖原路线图 P1–P4：
+本文档定义的全部 21 个端点已由 `后端 backbone/`（Python 3.12+ / FastAPI）实现，覆盖原路线图 P1–P4：
 
 - ✅ **P1**：LearnerState 读写 + `/api/skills/invoke`（6 Skill 全通）。
 - ✅ **P2**：`/ws/chat` 流式 + KB（create/documents/search + 附件）。
 - ✅ **P3**：MasteryEngine（pyBKT 闭式前向，复现 UC-B 0.55→0.41→0.66）+ 三层 Memory + Memory Graph + Quiz 生成/语义批改。
 - ✅ **P4**：FSRS 间隔重复 + 软证据、provider 缝全装配（LiteLLM/mem0/LlamaIndex/BGE-M3/Docling）、PocketBase 严鉴权、离线 `recompute-mastery --fit` 重标定。
 
-**运行**（详见 [`src/README.md`](../src/README.md)）：
+**运行**（详见 [`后端 backbone/README.md`](../后端%20backbone/README.md)）：
 ```bash
-cd src
+cd "后端 backbone"
 pip install -e ".[all,dev]"           # 装依赖（按需选 extras）
 docker compose up -d postgres          # 起 Postgres+pgvector（见仓库根 docker-compose.yml）
-alembic upgrade head && python -m plos.cli seed   # 建表 + 种子（stu_001 可用）
-uvicorn plos.app.main:app --port 8001  # 起服务
+alembic upgrade head && python -m src.cli seed   # 建表 + 种子（stu_001 可用）
+uvicorn src.app.main:app --port 8001  # 起服务
 ```
 前端联调：`web/.env.local` 设 `NEXT_PUBLIC_USE_MOCK=false` + `NEXT_PUBLIC_API_BASE_URL=http://localhost:8001`。
 

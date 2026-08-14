@@ -4,9 +4,9 @@ from __future__ import annotations
 
 import pytest
 
-from plos.domain.grading import SemanticGrader
-from plos.providers.registry import build_providers
-from plos.schemas.quiz import Question
+from src.domain.grading import SemanticGrader
+from src.providers.registry import build_providers
+from src.schemas.quiz import Question
 
 # build_providers() with no env → all stubs; grader uses deterministic paths.
 PROVIDERS = build_providers()

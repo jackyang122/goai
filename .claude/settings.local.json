@@ -15,7 +15,12 @@
       "Bash(wsl.exe --status)",
       "Bash(wsl.exe --version)",
       "Read(//c/Users/THINK/.claude/projects/E--sourcedream-project-harness-code/memory/**)",
-      "Read(//c/Users/THINK/.claude/projects/E--sourcedream-project-harness-code/memory//**)"
+      "Read(//c/Users/THINK/.claude/projects/E--sourcedream-project-harness-code/memory//**)",
+      "Bash(npm run *)",
+      "Bash(claude mcp *)",
+      "Bash(echo \"exit=$?\")",
+      "Bash(npm install *)",
+      "Bash(git check-ignore *)"
     ]
   }
 }

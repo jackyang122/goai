@@ -199,6 +199,11 @@ class ChatTurnOrchestrator:
     async def _add_message(
         self, thread_id, learner_id, role, content, *, skill=None, citations=None, payload=None
     ) -> Message:
+        # The ``citations`` JSONB column stores plain JSON, so Pydantic ``Citation``
+        # objects must be serialized here at the persistence boundary — the column's
+        # default ``json.dumps`` binder cannot encode them and raises
+        # "Object of type Citation is not JSON serializable".
+        citations_json = [c.model_dump(mode="json") for c in citations] if citations else None
         msg = Message(
             id=new_id("msg"),
             thread_id=thread_id,
@@ -207,7 +212,7 @@ class ChatTurnOrchestrator:
             content=content,
             skill=skill,
             status="complete",
-            citations=citations,
+            citations=citations_json,
             payload=payload,
             created_at=now_utc(),
         )

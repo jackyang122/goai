@@ -44,6 +44,11 @@ async def run(session: AsyncSession, providers) -> int:
         nonlocal inserted
         if not await _exists(session, model, row.id):
             session.add(row)
+            # Flush per row so inserts land in code order. This project keeps models
+            # relationship-free, so SQLAlchemy's unit of work can't order them by FK
+            # dependency — without an explicit flush, child rows (e.g. flash_cards) may
+            # be emitted before their parent (learners) and violate the FK constraint.
+            await session.flush()
             inserted += 1
 
     # ── Learner ─────────────────────────────────────────────────────────────

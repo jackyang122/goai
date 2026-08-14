@@ -4,8 +4,8 @@ from __future__ import annotations
 
 import re
 
-from plos.core.config import settings
-from plos.core.ids import new_id
+from src.core.config import settings
+from src.core.ids import new_id
 
 # ULID is 26 chars of Crockford base32 (python-ulid emits lowercase here).
 ULID_RE = re.compile(r"^[0-9A-HJKMNP-TV-Z]{26}$", re.IGNORECASE)

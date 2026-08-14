@@ -21,10 +21,10 @@ import type {
  *
  * The demo defaults to the in-memory MOCK backend (NEXT_PUBLIC_USE_MOCK !== "false"),
  * so it runs with zero external services. Set NEXT_PUBLIC_USE_MOCK=false and point
- * NEXT_PUBLIC_API_BASE_URL at a DeepTutor instance to hit the REAL client below.
+ * NEXT_PUBLIC_API_BASE_URL at a Personal Learning OS instance to hit the REAL client below.
  *
  * The REAL client is a thin fetch wrapper whose endpoints are the PLOS protocol
- * documented in docs/API协议.md (DeepTutor-native endpoints + the small PLOS
+ * documented in docs/API协议.md (Personal Learning OS-native endpoints + the small PLOS
  * extension surface for LearnerState / Skills / MasteryEngine). When the PLOS
  * extension service is implemented, the real client works without changes here.
  */
@@ -41,7 +41,7 @@ async function json<T>(res: Response): Promise<T> {
 
 const JSON_HEADERS = { "Content-Type": "application/json" } as const;
 
-/** Real backend client — talks to the DeepTutor origin (proxies /api → FastAPI :8001). */
+/** Real backend client — talks to the Personal Learning OS origin (proxies /api → FastAPI :8001). */
 class RealApi implements PlosApi {
   private u(path: string) {
     return `${API_BASE_URL}${path}`;
@@ -84,7 +84,7 @@ class RealApi implements PlosApi {
   }
 
   async sendMessage(id: string, threadId: string, content: string, persona: PersonaId) {
-    // Note: real DeepTutor chat streams via /ws/chat. This REST fallback returns the
+    // Note: real backend chat streams via /ws/chat. This REST fallback returns the
     // finalized assistant message; the production chat surface uses the WS client.
     return json<ChatMessage>(
       await fetch(this.u(`/api/threads/${threadId}/messages`), {

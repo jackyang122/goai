@@ -11,7 +11,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
-import { api, LEARNER_ID } from "@/lib/api";
+import { api, LEARNER_ID, API_BASE_URL } from "@/lib/api";
 import type { ChatMessage } from "@/lib/api";
 import { cn } from "@/lib/utils";
 
@@ -53,12 +53,76 @@ export default function ChatPage() {
     };
     setMessages((m) => [...m, userMsg]);
     setSending(true);
-    try {
-      const reply = await api.sendMessage(LEARNER_ID, threadId.current, content, "teacher");
-      setMessages((m) => [...m, reply]);
-    } finally {
+
+    const wsUrl = API_BASE_URL.replace(/^http/, "ws") + "/ws/chat";
+    const ws = new WebSocket(wsUrl);
+    let assistantMsg: ChatMessage | null = null;
+
+    ws.onopen = () => {
+      ws.send(JSON.stringify({
+        threadId: threadId.current,
+        learnerId: LEARNER_ID,
+        content,
+        persona: "teacher",
+      }));
+    };
+
+    ws.onmessage = (event) => {
+      try {
+        const ev = JSON.parse(event.data);
+        if (ev.type === "content" && ev.delta) {
+          if (!assistantMsg) {
+            assistantMsg = {
+              id: `a_${Date.now()}`,
+              role: "assistant",
+              content: "",
+              createdAt: new Date().toISOString(),
+              status: "streaming",
+            };
+            setMessages((m) => [...m, assistantMsg!]);
+          }
+          assistantMsg.content += ev.delta;
+          // Force re-render by replacing the last message
+          setMessages((m) => {
+            const next = [...m];
+            next[next.length - 1] = { ...assistantMsg! };
+            return next;
+          });
+        } else if (ev.type === "skill") {
+          // Skill detection — could show a badge
+        } else if (ev.type === "done") {
+          if (assistantMsg) {
+            assistantMsg.status = "complete";
+            assistantMsg.id = ev.messageId || assistantMsg.id;
+            setMessages((m) => {
+              const next = [...m];
+              next[next.length - 1] = { ...assistantMsg! };
+              return next;
+            });
+          }
+          ws.close();
+          setSending(false);
+        } else if (ev.type === "error") {
+          console.error("WS error:", ev.message);
+          ws.close();
+          setSending(false);
+        }
+      } catch {
+        // ignore parse errors
+      }
+    };
+
+    ws.onerror = () => {
+      // Fallback to REST if WebSocket fails
+      ws.close();
+      api.sendMessage(LEARNER_ID, threadId.current, content, "teacher")
+        .then((reply) => setMessages((m) => [...m, reply]))
+        .finally(() => setSending(false));
+    };
+
+    ws.onclose = () => {
       setSending(false);
-    }
+    };
   }
 
   return (
@@ -132,6 +196,7 @@ export default function ChatPage() {
 
 function MessageBubble({ message }: { message: ChatMessage }) {
   const isUser = message.role === "user";
+  const isStreaming = message.status === "streaming";
   return (
     <div className={cn("flex", isUser ? "justify-end" : "justify-start")}>
       <div className={cn("max-w-[85%] space-y-2", isUser ? "items-end" : "items-start")}>
@@ -145,10 +210,21 @@ function MessageBubble({ message }: { message: ChatMessage }) {
             "rounded-2xl px-4 py-2.5 text-sm leading-relaxed",
             isUser
               ? "rounded-br-sm bg-primary text-primary-foreground"
-              : "rounded-bl-sm bg-secondary text-secondary-foreground"
+              : "rounded-bl-sm bg-secondary text-secondary-foreground",
+            isStreaming && "animate-pulse"
           )}
         >
           <div className="whitespace-pre-wrap">{message.content}</div>
+          {isStreaming && message.content === "" && (
+            <span className="inline-flex gap-0.5">
+              <span className="h-1.5 w-1.5 animate-bounce rounded-full bg-muted-foreground" style={{ animationDelay: "0ms" }} />
+              <span className="h-1.5 w-1.5 animate-bounce rounded-full bg-muted-foreground" style={{ animationDelay: "150ms" }} />
+              <span className="h-1.5 w-1.5 animate-bounce rounded-full bg-muted-foreground" style={{ animationDelay: "300ms" }} />
+            </span>
+          )}
+          {isStreaming && message.content !== "" && (
+            <span className="ml-0.5 inline-block h-4 w-1 animate-pulse bg-accent" />
+          )}
         </div>
         {!isUser && message.citations && message.citations.length > 0 && (
           <div className="space-y-1">

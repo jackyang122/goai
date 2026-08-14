@@ -15,18 +15,30 @@ import {
   User,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { FEATURES, type FeatureKey } from "@/lib/features";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { useTheme } from "@/components/theme-provider";
 import { IS_MOCK } from "@/lib/api";
 
-const NAV = [
+type NavItem = {
+  href: string;
+  label: string;
+  icon: typeof LayoutDashboard;
+  feature?: FeatureKey; // gate behind a flag in lib/features.ts
+};
+
+const NAV: readonly NavItem[] = [
   { href: "/", label: "仪表盘", icon: LayoutDashboard },
   { href: "/learn", label: "学习", icon: BookOpen },
-  { href: "/practice", label: "练习", icon: Target },
+  { href: "/practice", label: "练习", icon: Target, feature: "practice" },
   { href: "/home", label: "对话", icon: MessageSquare },
   { href: "/me", label: "我的", icon: User },
-] as const;
+];
+
+// Feature-gated navigation: entries whose flag is off are hidden in both the
+// desktop sidebar and the mobile header.
+const VISIBLE_NAV = NAV.filter((item) => !item.feature || FEATURES[item.feature]);
 
 function isActive(pathname: string, href: string) {
   return href === "/" ? pathname === "/" : pathname.startsWith(href);
@@ -51,7 +63,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
         </div>
 
         <nav className="flex-1 space-y-1 px-3 py-2">
-          {NAV.map((item) => {
+          {VISIBLE_NAV.map((item) => {
             const active = isActive(pathname, item.href);
             return (
               <Link
@@ -95,7 +107,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
               <GraduationCap className="h-5 w-5" />
             </div>
             <div className="flex gap-1">
-              {NAV.map((item) => (
+              {VISIBLE_NAV.map((item) => (
                 <Link
                   key={item.href}
                   href={item.href}
@@ -110,14 +122,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
             </div>
           </div>
 
-          <div className="hidden md:block">
-            <Badge tone="outline" className="gap-1.5">
-              <span className="h-1.5 w-1.5 rounded-full bg-success" />
-              {IS_MOCK ? "本地演示 · Mock" : "已连接 DeepTutor"}
-            </Badge>
-          </div>
-
-          <div className="flex items-center gap-2">
+          <div className="ml-auto flex items-center gap-2">
             <Button
               variant="ghost"
               size="icon"

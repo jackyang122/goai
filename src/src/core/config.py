@@ -34,6 +34,14 @@ class Settings(BaseSettings):
     db_pool_size: int = 10
     db_max_overflow: int = 20
     db_echo: bool = False
+    # SSL for asyncpg: ``auto`` (default) requires TLS for any non-localhost host and
+    # disables it for localhost, so local dev needs no config. Override with one of
+    # asyncpg's tokens (disable | prefer | require | verify-ca | verify-full).
+    db_ssl: str = "auto"
+    # ``standard`` (default) keeps asyncpg prepared statements enabled. Use ``pgbouncer``
+    # when connecting through a transaction-mode pooler (e.g. Supabase port 6543) which
+    # cannot share prepared statements across pooled connections.
+    db_pool_mode: str = "standard"
 
     # ── Domain constants ───────────────────────────────────────────────────
     weak_threshold: float = 0.6  # mastery level strictly below this => weakPoint
@@ -41,7 +49,7 @@ class Settings(BaseSettings):
     default_learner_id: str = "stu_001"
 
     # ── Provider engine selection (config-driven seam) ─────────────────────
-    llm_engine: str = "stub"  # stub | litellm
+    llm_engine: str = "stub"  # stub | litellm | deeptutor
     embedding_engine: str = "stub"  # stub | bge
     rag_engine: str = "stub"  # stub | llamaindex
     memory_engine: str = "stub"  # stub | mem0
@@ -51,6 +59,13 @@ class Settings(BaseSettings):
     litellm_model: Optional[str] = None  # e.g. "gpt-4o-mini" or "openai/…"
     litellm_api_key: Optional[str] = None
     litellm_api_base: Optional[str] = None
+
+    # DeepTutor service.  The service exposes its agent runtime through the
+    # unified WebSocket endpoint rather than OpenAI's /chat/completions API.
+    deeptutor_base_url: str = "http://127.0.0.1:8002"
+    deeptutor_token: Optional[str] = None
+    deeptutor_capability: str = "chat"
+    deeptutor_language: str = "zh"
 
     # ── Embedding (BGE-M3) ─────────────────────────────────────────────────
     bge_model: str = "BAAI/bge-m3"

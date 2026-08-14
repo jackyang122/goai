@@ -4,7 +4,7 @@
  * This file is the single source of truth for the data shapes exchanged between
  * the Next.js frontend and the backend. The demo ships a mock implementation
  * (`mock.ts`) that satisfies `PlosApi`; the real implementation talks to the
- * DeepTutor backend (FastAPI on :8001, proxied via the Next.js origin) plus a
+ * Personal Learning OS backend (FastAPI on :8001, proxied via the Next.js origin) plus a
  * thin PLOS extension service for LearnerState / Skills / MasteryEngine.
  *
  * See docs/API协议.md for the endpoint-by-endpoint mapping.
@@ -18,7 +18,7 @@ export type PersonaId = "teacher";
 
 export type Trend = "up" | "down" | "flat";
 
-/** The six pluggable Learning Agent skills (PLOS extension over DeepTutor). */
+/** The six pluggable Learning Agent skills (PLOS extension over the Personal Learning OS backend). */
 export type SkillId =
   | "learning-plan"
   | "homework-coach"
@@ -185,7 +185,7 @@ export interface ChatThread {
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
-// Knowledge Base — multi-engine RAG (mirrors DeepTutor Knowledge Center)
+// Knowledge Base — multi-engine RAG
 // ─────────────────────────────────────────────────────────────────────────────
 
 export type KbEngine =
@@ -240,7 +240,7 @@ export interface ErrorBookItem {
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
-// Memory — three-layer (mirrors DeepTutor Memory L1/L2/L3)
+// Memory — three-layer (L1/L2/L3)
 // ─────────────────────────────────────────────────────────────────────────────
 
 export type MemoryLayer = "L1" | "L2" | "L3";

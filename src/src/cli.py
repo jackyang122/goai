@@ -1,4 +1,4 @@
-"""CLI: ``python -m plos.cli {seed, run, recompute-mastery}``."""
+"""CLI: ``python -m src.cli {seed, run, recompute-mastery, mcp}``."""
 
 from __future__ import annotations
 
@@ -28,7 +28,7 @@ def _cmd_run(args) -> int:
     import uvicorn
 
     uvicorn.run(
-        "plos.app.main:app",
+        "src.app.main:app",
         host=args.host,
         port=args.port,
         reload=args.reload,
@@ -74,6 +74,14 @@ def _maybe_pybkt_fit(session, learner_id: str) -> None:
     _ = Model
 
 
+def _cmd_mcp(args) -> int:
+    from .mcp_server import mcp
+
+    print("plos MCP server starting on stdio (tools: the 6 skills)…", file=sys.stderr)
+    mcp.run(transport="stdio")
+    return 0
+
+
 def main(argv=None) -> int:
     parser = argparse.ArgumentParser(prog="plos", description="Personal Learning OS backend CLI")
     sub = parser.add_subparsers(dest="cmd", required=True)
@@ -90,6 +98,9 @@ def main(argv=None) -> int:
     p_recompute = sub.add_parser("recompute-mastery", help="Recompute mastery derived fields")
     p_recompute.add_argument("--fit", action="store_true", help="Also run offline pybkt.fit re-estimation")
     p_recompute.set_defaults(func=_cmd_recompute)
+
+    p_mcp = sub.add_parser("mcp", help="Run the MCP server (stdio) exposing PLOS skills as tools")
+    p_mcp.set_defaults(func=_cmd_mcp)
 
     args = parser.parse_args(argv)
     return args.func(args)

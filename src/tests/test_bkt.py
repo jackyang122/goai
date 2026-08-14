@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from plos.domain.mastery.bkt import (
+from src.domain.mastery.bkt import (
     BktParams,
     forward,
     p_correct,

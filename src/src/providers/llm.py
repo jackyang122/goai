@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import json
+from urllib.parse import parse_qsl, urlencode, urlparse, urlunparse
 from abc import ABC, abstractmethod
 from typing import Any, AsyncIterator, Dict, List, Optional
 
@@ -179,3 +180,110 @@ class LiteLLMProvider(LLMProvider):
                 delta = None
             if delta:
                 yield delta
+
+
+class DeepTutorProvider(LLMProvider):
+    """LLM seam backed by DeepTutor's unified agent WebSocket API.
+
+    DeepTutor is an agent service, not an OpenAI-compatible model endpoint.
+    Each PLOS turn is therefore submitted as a ``message`` turn and this
+    adapter relays its answer-visible ``content`` events to the caller.
+    """
+
+    name = "deeptutor"
+
+    def __init__(
+        self,
+        base_url: str,
+        token: Optional[str] = None,
+        capability: str = "chat",
+        language: str = "zh",
+    ) -> None:
+        self.ws_url = self._websocket_url(base_url)
+        self.token = token
+        self.capability = capability
+        self.language = language
+
+    @staticmethod
+    def _websocket_url(base_url: str) -> str:
+        parsed = urlparse(base_url.strip())
+        if parsed.scheme not in {"http", "https", "ws", "wss"} or not parsed.netloc:
+            raise ValueError("PLOS_DEEPTUTOR_BASE_URL must be an absolute HTTP(S) or WS(S) URL")
+        scheme = {"http": "ws", "https": "wss"}.get(parsed.scheme, parsed.scheme)
+        path = parsed.path.rstrip("/")
+        if not path.endswith("/api/v1/ws"):
+            path = f"{path}/api/v1/ws" if path else "/api/v1/ws"
+        return urlunparse((scheme, parsed.netloc, path, "", "", ""))
+
+    @property
+    def _connect_url(self) -> str:
+        """DeepTutor reads WS credentials from the ``token`` query parameter."""
+        if not self.token:
+            return self.ws_url
+        parsed = urlparse(self.ws_url)
+        query = dict(parse_qsl(parsed.query, keep_blank_values=True))
+        query["token"] = self.token
+        return urlunparse(parsed._replace(query=urlencode(query)))
+
+    def _turn_payload(self, messages: List[Message], system: Optional[str]) -> Dict[str, Any]:
+        # PLOS passes the complete thread. DeepTutor's wire contract has a
+        # single content field, so retain preceding turns as explicit context.
+        prior = messages[:-1]
+        last = messages[-1]["content"] if messages else ""
+        context: List[str] = []
+        if system:
+            context.append(f"[System instruction]\n{system}")
+        for message in prior:
+            role = message.get("role", "user")
+            content = message.get("content", "")
+            if content:
+                context.append(f"[{role}]\n{content}")
+        content = "\n\n".join([*context, f"[User]\n{last}"])
+        return {
+            "type": "message",
+            "content": content,
+            "capability": self.capability,
+            "language": self.language,
+        }
+
+    async def complete(
+        self,
+        messages: List[Message],
+        *,
+        system: Optional[str] = None,
+        temperature: float = 0.3,
+        max_tokens: int = 1024,
+    ) -> str:
+        return "".join([chunk async for chunk in self.stream(messages, system=system, temperature=temperature, max_tokens=max_tokens)])
+
+    async def stream(
+        self,
+        messages: List[Message],
+        *,
+        system: Optional[str] = None,
+        temperature: float = 0.3,
+        max_tokens: int = 1024,
+    ) -> AsyncIterator[str]:
+        try:
+            import websockets  # type: ignore
+        except Exception as exc:  # pragma: no cover
+            raise RuntimeError("websockets is required for the DeepTutor provider") from exc
+
+        try:
+            async with websockets.connect(self._connect_url) as socket:
+                await socket.send(json.dumps(self._turn_payload(messages, system), ensure_ascii=False))
+                while True:
+                    event = json.loads(await socket.recv())
+                    kind = event.get("type")
+                    if kind == "content":
+                        content = event.get("content")
+                        if content:
+                            yield str(content)
+                    elif kind == "error":
+                        raise RuntimeError(f"DeepTutor turn failed: {event.get('content') or event.get('message') or 'unknown error'}")
+                    elif kind == "done":
+                        return
+        except RuntimeError:
+            raise
+        except Exception as exc:
+            raise RuntimeError(f"DeepTutor service unavailable at {self.ws_url}: {exc}") from exc

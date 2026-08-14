@@ -26,7 +26,7 @@ async def lifespan(app: FastAPI) -> AsyncIterator[None]:
         await ensure_extensions()
         if settings.auto_create_tables:
             async with engine.begin() as conn:
-                await Base.metadata.create_all(conn)
+                await conn.run_sync(Base.metadata.create_all)
         log.info("database schema ready")
     except Exception as exc:  # noqa: BLE001
         log.warning("DB schema setup skipped (is Postgres reachable at %s?): %s", settings.database_url, exc)

@@ -4,8 +4,8 @@ from __future__ import annotations
 
 from datetime import datetime, timezone
 
-from plos.db.models.cards import FlashCard
-from plos.domain.cards import FsrsCardService
+from src.db.models.cards import FlashCard
+from src.domain.cards import FsrsCardService
 
 # Service with a null session is fine — we only exercise the pure _schedule path.
 SVC = FsrsCardService(session=None)

@@ -2,7 +2,7 @@
   "name": "personal-learning-os",
   "version": "0.1.0",
   "private": true,
-  "description": "Personal Learning OS — agent-native personalized learning workspace (built on DeepTutor)",
+  "description": "Personal Learning OS — agent-native personalized learning workspace",
   "scripts": {
     "dev": "next dev",
     "build": "next build",

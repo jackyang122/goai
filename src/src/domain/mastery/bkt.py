@@ -70,7 +70,7 @@ def trend(prev: float, curr: float) -> Literal["up", "down", "flat"]:
     return "flat"
 
 
-# ── Self-check (run via ``python -m plos.domain.mastery.bkt``) ─────────────────
+# ── Self-check (run via ``python -m src.domain.mastery.bkt``) ─────────────────
 if __name__ == "__main__":  # pragma: no cover
     p = BktParams(0.55, 0.10, 0.30, 0.30)
     after_wrong = forward(0.55, False, p)
